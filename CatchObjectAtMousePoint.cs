@@ -2,20 +2,18 @@ using System;
 using System.Drawing;
 using System.Windows.Automation;
 
-namespace White_Spy
+namespace Ulavali
 {
     public class CatchObjectAtMousePoint
     {
-        private AutomationElement objectAtCurrentMousePosition = AutomationElement.RootElement;
-        private AutomationElement objectAtPreviousMousePosition;
+        private AutomationElement _objectAtCurrentMousePosition = AutomationElement.RootElement;
 
         public AutomationElement ObjectAtCurrentMousePosition
         {
             get
             {
-                objectAtPreviousMousePosition = objectAtCurrentMousePosition;
-                objectAtCurrentMousePosition = getAutomationElementAtCurrentCursorPosition();
-                return objectAtCurrentMousePosition;
+                _objectAtCurrentMousePosition = getAutomationElementAtCurrentCursorPosition();
+                return _objectAtCurrentMousePosition;
             }
         }
 
@@ -35,43 +33,4 @@ namespace White_Spy
             }
         }
     }
-}
-//        private void OnTimerTick()
-//        {
-//            try
-//            {
-//                if (!objectAtPreviousMousePosition.Equals(ObjectAtCurrentMousePosition))
-//                {
-//                    if (!objectAtCurrentMousePosition.Current.ProcessId.Equals(Process.GetCurrentProcess().Id))
-//                    {
-//                        OnMouseMove(null, ObjectAtCurrentMousePosition);
-//                    }
-//                }
-//            }
-//            catch (Exception e)
-//            {
-//                Console.WriteLine(e);
-//            }
-//        }
-
-//        public event OnMouseMoveHandler OnMouseMove;
-//
-//
-//
-//
-//        public void StopListening()
-//        {
-//            mouseHooker.RemoveHook();
-//            MouseHooker.OnMouseMove -= OnTimerTick;
-//        }
-//
-//        public void StartListening()
-//        {
-//            MouseHooker.OnMouseMove += OnTimerTick;
-//            mouseHooker.StartMouseHook();
-//
-//        }
-//    }
-//
-//    public delegate void OnMouseMoveHandler(object sender, AutomationElement currentCursorPosition);
-    
+}    

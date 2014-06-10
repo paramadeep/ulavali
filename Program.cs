@@ -3,9 +3,10 @@ using System.Drawing;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Forms;
+using Ulavali.Properties;
 using Size=System.Drawing.Size;
 
-namespace White_Spy
+namespace Ulavali
 {
     internal static class Program
     {
@@ -19,19 +20,19 @@ namespace White_Spy
     internal class WhiteSpy
     {
         private const int TimeInterval = 2;
-        private readonly CatchObjectAtMousePoint CatchObjcetAtMouse = new CatchObjectAtMousePoint();
+        private readonly CatchObjectAtMousePoint _catchObjcetAtMouse = new CatchObjectAtMousePoint();
 
-        private readonly ToolStripMenuItem ExitToolStripMenuItem = new ToolStripMenuItem();
-        private readonly HighlightRectangle Highlight = new HighlightRectangle();
-        private readonly KeyboardHook KeyboardHook = new KeyboardHook();
-        private readonly LivePropertyDisplay LivePropertyDisplay = new LivePropertyDisplay();
-        private readonly NotifyIcon SystemTrayControl = new NotifyIcon();
-        private readonly ContextMenuStrip SystemTrayMenu = new ContextMenuStrip();
-        private readonly Timer Timer = new Timer();
+        private readonly ToolStripMenuItem _exitToolStripMenuItem = new ToolStripMenuItem();
+        private readonly HighlightRectangle _highlight = new HighlightRectangle();
+        private readonly KeyboardHook _keyboardHook = new KeyboardHook();
+        private readonly LivePropertyDisplay _livePropertyDisplay = new LivePropertyDisplay();
+        private readonly NotifyIcon _systemTrayControl = new NotifyIcon();
+        private readonly ContextMenuStrip _systemTrayMenu = new ContextMenuStrip();
+        private readonly Timer _timer = new Timer();
         private static AutomationElement _currentAutomationElement = AutomationElement.RootElement;
         private static Rect _focusedRect;
         private static AutomationElement _previousFocusedAutomationElement;
-        private static SpyState spyState;
+        private static SpyState _spyState;
         
         private enum SpyState
         {
@@ -48,45 +49,45 @@ namespace White_Spy
 
         private void InitilizeSystemTrayControl()
         {
-            SystemTrayControl.Visible = true;
-            SystemTrayControl.Icon = new Icon("image\\User.ico");
+            _systemTrayControl.Visible = true;
+            _systemTrayControl.Icon = new Icon("image\\User.ico");
 
             // 
             // SystemTrayControl
             // 
-            SystemTrayControl.BalloonTipText = "Start Spying";
-            SystemTrayControl.ContextMenuStrip = SystemTrayMenu;
-            SystemTrayControl.Text = "Start Spying";
-            SystemTrayControl.Visible = true;
-            SystemTrayControl.Click += OnClickOnSystemTrayControl;
+            _systemTrayControl.BalloonTipText = Resources.Start_Spying;
+            _systemTrayControl.ContextMenuStrip = _systemTrayMenu;
+            _systemTrayControl.Text = Resources.Start_Spying;
+            _systemTrayControl.Visible = true;
+            _systemTrayControl.Click += OnClickOnSystemTrayControl;
             // 
             // SystemTrayMenu
             // 
-            SystemTrayMenu.Items.AddRange(new ToolStripItem[]
+            _systemTrayMenu.Items.AddRange(new ToolStripItem[]
                                               {
-                                                  ExitToolStripMenuItem
+                                                  _exitToolStripMenuItem
                                               });
-            SystemTrayMenu.Name = "SystemTrayMenu";
-            SystemTrayMenu.Size = new Size(104, 48);
+            _systemTrayMenu.Name = "SystemTrayMenu";
+            _systemTrayMenu.Size = new Size(104, 48);
             // 
             // ExitToolStripMenuItem
             // 
-            ExitToolStripMenuItem.Name = "ExitToolStripMenuItem";
-            ExitToolStripMenuItem.Size = new Size(103, 22);
-            ExitToolStripMenuItem.Text = "exit";
-            ExitToolStripMenuItem.Click += ExitApplication;
+            _exitToolStripMenuItem.Name = "ExitToolStripMenuItem";
+            _exitToolStripMenuItem.Size = new Size(103, 22);
+            _exitToolStripMenuItem.Text = Resources.SystemTrayControl_exit;
+            _exitToolStripMenuItem.Click += ExitApplication;
             // 
         }
 
         private void ExitApplication(object sender, EventArgs e)
         {
-            SystemTrayControl.Visible = false;
+            _systemTrayControl.Visible = false;
             Application.Exit();
         }
 
         private void OnClickOnSystemTrayControl(object sender, EventArgs e1)
         {
-            if (SystemTrayControl.Text == "Start Spying")
+            if (_systemTrayControl.Text == Resources.Start_Spying)
             {
                 StartListeningToMouseMoves();
             }
@@ -98,48 +99,46 @@ namespace White_Spy
 
         private void StartListeningToMouseMoves()
         {
-            spyState = SpyState.Spying;
-            Timer.Interval = TimeInterval;
-            Timer.Tick += HandelMouseMoveToUpdateHilight;
-            Timer.Start();
-            KeyboardHook.SetHook();
+            _spyState = SpyState.Spying;
+            _timer.Interval = TimeInterval;
+            _timer.Tick += HandelMouseMoveToUpdateHilight;
+            _timer.Start();
+            _keyboardHook.SetHook();
             KeyboardHook.OnKeyPress += ListenKeyPress;
-            SystemTrayControl.Text = "Stop Spying";
+            _systemTrayControl.Text = Resources.Stop_Spying;
         }
 
         private void StopListening()
         {
-            spyState = SpyState.Idel;
-            Timer.Stop();
+            _spyState = SpyState.Idel;
+            _timer.Stop();
             KeyboardHook.OnKeyPress -= ListenKeyPress;
-            Highlight.Visible = false;
-            LivePropertyDisplay.Hide();
-            SystemTrayControl.Text = "Start Spying";
-            KeyboardHook.UnHook();
+            _highlight.Visible = false;
+            _livePropertyDisplay.Hide();
+            _systemTrayControl.Text = Resources.Start_Spying;
+            _keyboardHook.UnHook();
         }
 
         private void DisplayCurrentUiObjectProperties()
         {
-            AutomationElement automationElementAtStartOfThread = _currentAutomationElement;
-            LivePropertyDisplay.Hide();
-            LivePropertyDisplay.LoadAutomationObjectForDisplay(automationElementAtStartOfThread);
-            //            if (automationElementAtStartOfThread != _currentAutomationElement) return;
-            LivePropertyDisplay.Show();
+            var automationElementAtStartOfThread = _currentAutomationElement;
+            _livePropertyDisplay.Hide();
+            _livePropertyDisplay.LoadAutomationObjectForDisplay(automationElementAtStartOfThread);
+            _livePropertyDisplay.Show();
         }
 
 
         private void HandelMouseMoveToUpdateHilight(object sender, EventArgs e1)
         {
             _previousFocusedAutomationElement = _currentAutomationElement;
-            _currentAutomationElement = CatchObjcetAtMouse.ObjectAtCurrentMousePosition;
+            _currentAutomationElement = _catchObjcetAtMouse.ObjectAtCurrentMousePosition;
             if (_previousFocusedAutomationElement.Equals(_currentAutomationElement)) return;
             _focusedRect = _currentAutomationElement.Current.BoundingRectangle;
 
-            // Show rectangle
-            Highlight.Location = new Rectangle(
+            _highlight.Location = new Rectangle(
                 (int)_focusedRect.Left, (int)_focusedRect.Top,
                 (int)_focusedRect.Width, (int)_focusedRect.Height);
-            Highlight.Visible = true;
+            _highlight.Visible = true;
 
             DisplayCurrentUiObjectProperties();
         }
@@ -147,18 +146,16 @@ namespace White_Spy
 
         private void ListenKeyPress(int keyChar)
         {
-            if (keyChar == 27)
+            if (keyChar != 27) return;
+            switch (_spyState)
             {
-                switch (spyState)
-                {
-                    case SpyState.Spying:
-                        Timer.Stop();
-                        spyState = SpyState.ShowProperties;
-                        break;
-                    case SpyState.ShowProperties:
-                        StopListening();
-                        break;
-                }
+                case SpyState.Spying:
+                    _timer.Stop();
+                    _spyState = SpyState.ShowProperties;
+                    break;
+                case SpyState.ShowProperties:
+                    StopListening();
+                    break;
             }
         }
     }

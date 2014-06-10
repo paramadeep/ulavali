@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "White-Spy", "White-Spy.csproj", "{7C1AA75D-3458-477A-9CBB-71B8DF4A6040}"
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ulavali", "Ulavali.csproj", "{7C1AA75D-3458-477A-9CBB-71B8DF4A6040}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

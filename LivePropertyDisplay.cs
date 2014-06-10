@@ -1,53 +1,55 @@
 using System;
 using System.Collections;
 using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Forms;
-using Point=System.Drawing.Point;
+using Point = System.Drawing.Point;
 
-namespace White_Spy
+namespace Ulavali
 {
     public class LivePropertyDisplay
     {
-        private ArrayList AutomationObjectProperties = new ArrayList();
-        private DataGridView dataGrid = new DataGridView();
-        private Form LiveDisplayForm = new Form();
-        private Rectangle dispalyFormRectangle;
+        private readonly ArrayList _automationObjectProperties = new ArrayList();
+        private readonly Form _liveDisplayForm = new Form();
+        private readonly DataGridView _dataGrid = new DataGridView();
+        private Rectangle _dispalyFormRectangle;
 
 
         public LivePropertyDisplay()
         {
-            LiveDisplayForm.FormBorderStyle = FormBorderStyle.None;
-            LiveDisplayForm.ShowInTaskbar = false;
-            LiveDisplayForm.TopMost = true;
-            LiveDisplayForm.Visible = false;
-            LiveDisplayForm.Opacity = 0.85;
-            LiveDisplayForm.MouseEnter += LiveDisplayFormOnMouseEnter;
-            LiveDisplayForm.MouseMove += LiveDisplayFormOnMouseEnter;
+            _liveDisplayForm.FormBorderStyle = FormBorderStyle.None;
+            _liveDisplayForm.ShowInTaskbar = false;
+            _liveDisplayForm.TopMost = true;
+            _liveDisplayForm.Visible = false;
+            _liveDisplayForm.Opacity = 0.85;
+            _liveDisplayForm.MouseEnter += LiveDisplayFormOnMouseEnter;
+            _liveDisplayForm.MouseMove += LiveDisplayFormOnMouseEnter;
 
-            dataGrid.AllowUserToDeleteRows = false;
-            dataGrid.AllowUserToResizeColumns = false;
-            dataGrid.AllowUserToResizeRows = false;
-            dataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            dataGrid.ColumnHeadersVisible = false;
-            dataGrid.EditMode = DataGridViewEditMode.EditProgrammatically;
-            dataGrid.GridColor = Color.PowderBlue;
-            dataGrid.Location = new Point(0, 0);
-            dataGrid.MultiSelect = false;
-            dataGrid.ReadOnly = true;
-            dataGrid.RowHeadersVisible = false;
-            dataGrid.ScrollBars = ScrollBars.None;
-            dataGrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
-            
+            _dataGrid.AllowUserToDeleteRows = false;
+            _dataGrid.AllowUserToResizeColumns = false;
+            _dataGrid.AllowUserToResizeRows = false;
+            _dataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            _dataGrid.ColumnHeadersVisible = false;
+            _dataGrid.EditMode = DataGridViewEditMode.EditProgrammatically;
+            _dataGrid.GridColor = Color.PowderBlue;
+            _dataGrid.Location = new Point(0, 0);
+            _dataGrid.MultiSelect = false;
+            _dataGrid.ReadOnly = true;
+            _dataGrid.RowHeadersVisible = false;
+            _dataGrid.ScrollBars = ScrollBars.None;
+            _dataGrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
+
             // Make it a tool window so it doesn't show up with Alt+Tab.
-            int style = NativeMethods.GetWindowLong(
-                LiveDisplayForm.Handle, NativeMethods.GWL_EXSTYLE);
+            var style = NativeMethods.GetWindowLong(
+                _liveDisplayForm.Handle, NativeMethods.GWL_EXSTYLE);
             NativeMethods.SetWindowLong(
-                LiveDisplayForm.Handle, NativeMethods.GWL_EXSTYLE,
+                _liveDisplayForm.Handle, NativeMethods.GWL_EXSTYLE,
                 style | NativeMethods.WS_EX_TOOLWINDOW);
-            dataGrid.Dock = DockStyle.Fill;
-            LiveDisplayForm.Controls.Add(dataGrid);
+            _dataGrid.Dock = DockStyle.Fill;
+            _liveDisplayForm.Controls.Add(_dataGrid);
         }
 
         private void LiveDisplayFormOnMouseEnter(object sender, EventArgs args)
@@ -57,114 +59,76 @@ namespace White_Spy
 
         public void Hide()
         {
-            NativeMethods.ShowWindow(LiveDisplayForm.Handle, NativeMethods.SW_HIDE);
+            NativeMethods.ShowWindow(_liveDisplayForm.Handle, NativeMethods.SW_HIDE);
         }
 
         public void LoadAutomationObjectForDisplay(AutomationElement currentAutomationElement)
         {
-            dataGrid.DataSource = UpdateElementPropertyArray(currentAutomationElement);
+            _dataGrid.DataSource = UpdateElementPropertyArray(currentAutomationElement);
             Rect objectBoundingRectangle = currentAutomationElement.Current.BoundingRectangle;
 
-            dataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-            dataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            _dataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            _dataGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
 
-            LiveDisplayForm.AutoSize = false;
-            LiveDisplayForm.AutoSizeMode = AutoSizeMode.GrowOnly;
-            LiveDisplayForm.AutoSize = true;
+            _liveDisplayForm.AutoSize = false;
+            _liveDisplayForm.AutoSizeMode = AutoSizeMode.GrowOnly;
+            _liveDisplayForm.AutoSize = true;
 
             PositionLiveDiplayDialog(objectBoundingRectangle);
         }
 
         private void PositionLiveDiplayDialog(Rect objectBoundingRectangle)
         {
-            int totalColumnWidth= 0;
-            foreach (DataGridViewColumn column in dataGrid.Columns)
-            {
-                totalColumnWidth = totalColumnWidth + column.Width;
-            }
-             
-            int totalRowHeight= 0;
-            foreach (DataGridViewRow row in dataGrid.Rows)
-            {
-                totalRowHeight = totalRowHeight + row.Height;
-            }
-
-            dispalyFormRectangle = new Rectangle((int) (objectBoundingRectangle.X + objectBoundingRectangle.Width),
-                                                 (int) (objectBoundingRectangle.Y + objectBoundingRectangle.Height),
-                                                 totalColumnWidth,
-                                                 totalRowHeight);
+            int totalColumnWidth = _dataGrid.Columns.Cast<DataGridViewColumn>()
+                .Aggregate(0, (current, column) => current + column.Width);
+            int totalRowHeight = _dataGrid.Rows.Cast<DataGridViewRow>()
+                .Aggregate(0, (current, row) => current + row.Height);
+            _dispalyFormRectangle = new Rectangle((int) (objectBoundingRectangle.X + objectBoundingRectangle.Width),
+                (int) (objectBoundingRectangle.Y + objectBoundingRectangle.Height),
+                totalColumnWidth,
+                totalRowHeight);
             BringDisplayRectangleIntoScreen(objectBoundingRectangle);
-
-            NativeMethods.SetWindowPos(LiveDisplayForm.Handle, NativeMethods.HWND_TOPMOST,
-                                       (int) (dispalyFormRectangle.X),
-                                       (int) (dispalyFormRectangle.Y),
-                                       totalColumnWidth,
-                                       totalRowHeight,
-                                       NativeMethods.SWP_NOACTIVATE);
+            NativeMethods.SetWindowPos(_liveDisplayForm.Handle, NativeMethods.HWND_TOPMOST,
+                _dispalyFormRectangle.X,
+                _dispalyFormRectangle.Y,
+                totalColumnWidth,
+                totalRowHeight,
+                NativeMethods.SWP_NOACTIVATE);
         }
 
         private void BringDisplayRectangleIntoScreen(Rect testElementRectangle)
         {
-            var screenRectangle = new Rectangle(0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            if (screenRectangle.Contains(dispalyFormRectangle))return;
-            if (screenRectangle.Width<dispalyFormRectangle.X+dispalyFormRectangle.Width)
+            var screenRectangle = new Rectangle(0, 0, Screen.PrimaryScreen.Bounds.Width,
+                Screen.PrimaryScreen.Bounds.Height);
+            if (screenRectangle.Contains(_dispalyFormRectangle)) return;
+            if (screenRectangle.Width < _dispalyFormRectangle.X + _dispalyFormRectangle.Width)
             {
-                dispalyFormRectangle.X = screenRectangle.Width - dispalyFormRectangle.Width;
+                _dispalyFormRectangle.X = screenRectangle.Width - _dispalyFormRectangle.Width;
             }
 
-            if (screenRectangle.Height < dispalyFormRectangle.Height + dispalyFormRectangle.Y)
-            {
-                dispalyFormRectangle.Y = (int)(testElementRectangle.Y - dispalyFormRectangle.Height);
-                if (screenRectangle.Contains(dispalyFormRectangle)) return;
-                dispalyFormRectangle.Y = (int) (testElementRectangle.Y + testElementRectangle.Height - dispalyFormRectangle.Height);
-            }
-                
-            
+            if (screenRectangle.Height >= _dispalyFormRectangle.Height + _dispalyFormRectangle.Y) return;
+            _dispalyFormRectangle.Y = (int) (testElementRectangle.Y - _dispalyFormRectangle.Height);
+            if (screenRectangle.Contains(_dispalyFormRectangle)) return;
+            _dispalyFormRectangle.Y =
+                (int) (testElementRectangle.Y + testElementRectangle.Height - _dispalyFormRectangle.Height);
         }
 
         private ArrayList UpdateElementPropertyArray(AutomationElement currentAutomationElement)
         {
-            AutomationObjectProperties.Clear();
-            AutomationObjectProperties.Add(new ObjectProperty("Name", currentAutomationElement.Current.Name));
-            AutomationObjectProperties.Add(new ObjectProperty("Automation Id",
-                                                              currentAutomationElement.Current.AutomationId));
-            AutomationObjectProperties.Add(new ObjectProperty("Process Id",
-                                                              currentAutomationElement.Current.ProcessId.ToString()));
-            AutomationObjectProperties.Add(new ObjectProperty("Control Type",
-                                                              currentAutomationElement.Current.LocalizedControlType));
-//            AutomationObjectProperties.Add(new ObjectProperty("White Type",
-//                                                              GetWhiteType(currentAutomationElement)));
-
-            return AutomationObjectProperties;
+            _automationObjectProperties.Clear();
+            _automationObjectProperties.Add(new ObjectProperty("Name", currentAutomationElement.Current.Name));
+            _automationObjectProperties.Add(new ObjectProperty("Automation Id",
+                currentAutomationElement.Current.AutomationId));
+            _automationObjectProperties.Add(new ObjectProperty("Process Id",
+                currentAutomationElement.Current.ProcessId.ToString(CultureInfo.InvariantCulture)));
+            _automationObjectProperties.Add(new ObjectProperty("Control Type",
+                currentAutomationElement.Current.LocalizedControlType));
+            return _automationObjectProperties;
         }
 
         public void Show()
         {
-            NativeMethods.ShowWindow(LiveDisplayForm.Handle, NativeMethods.SW_SHOWNA);
-        }
-    }
-
-    public class ObjectProperty
-    {
-        private String property;
-        private String propertyValue;
-
-        public ObjectProperty(String propertyName, String propertyValue)
-        {
-            property = propertyName;
-            this.propertyValue = propertyValue;
-        }
-
-        public String Property
-        {
-            get { return property; }
-            set { property = value; }
-        }
-
-        public String Value
-        {
-            get { return propertyValue; }
-            set { propertyValue = value; }
+            NativeMethods.ShowWindow(_liveDisplayForm.Handle, NativeMethods.SW_SHOWNA);
         }
     }
 }

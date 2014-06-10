@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 //using Point=System.Windows.Point;
 
-namespace White_Spy
+namespace Ulavali
 {
     public static class NativeMethods
     {

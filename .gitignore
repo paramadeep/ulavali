@@ -1,5 +1,5 @@
 bin
 obj
-White-Spy.sln.DotSettings.user
+*.user
 Backup
-White-Spy.v11.suo
+*.suo

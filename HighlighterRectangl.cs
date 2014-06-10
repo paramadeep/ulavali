@@ -1,22 +1,21 @@
-using System;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
-namespace White_Spy
+
+namespace Ulavali
 {
     internal class HighlightRectangle 
     {
         #region Private Fields
 
-        private bool highlightShown;
-        private int highlightLineWidth;
-        private Rectangle highlightLocation;
+        private bool _highlightShown;
+        private readonly int _highlightLineWidth;
+        private Rectangle _highlightLocation;
 
-        private Form leftForm;
-        private Form topForm;
-        private Form rightForm;
-        private Form bottomForm;
-        private Form infoForm;
+        private readonly Form _leftForm;
+        private readonly Form _topForm;
+        private readonly Form _rightForm;
+        private readonly Form _bottomForm;
+        private readonly Form _infoForm;
 
         #endregion
 
@@ -32,14 +31,14 @@ namespace White_Spy
         public HighlightRectangle()
         {
             // Construct the rectangle and set some values.
-            highlightShown = false;
-            highlightLineWidth = 3;
-            leftForm = new Form();
-            topForm = new Form();
-            rightForm = new Form();
-            bottomForm = new Form();
-            infoForm = new Form();
-            Form[] forms = { leftForm, topForm, rightForm, bottomForm };
+            _highlightShown = false;
+            _highlightLineWidth = 3;
+            _leftForm = new Form();
+            _topForm = new Form();
+            _rightForm = new Form();
+            _bottomForm = new Form();
+            _infoForm = new Form();
+            Form[] forms = { _leftForm, _topForm, _rightForm, _bottomForm };
             foreach (Form form in forms)
             {
                 form.FormBorderStyle = FormBorderStyle.None;
@@ -57,7 +56,7 @@ namespace White_Spy
                     form.Handle, NativeMethods.GWL_EXSTYLE);
                 NativeMethods.SetWindowLong(
                     form.Handle, NativeMethods.GWL_EXSTYLE,
-                    (int)(style | NativeMethods.WS_EX_TOOLWINDOW));
+                    style | NativeMethods.WS_EX_TOOLWINDOW);
             }
 
             
@@ -80,21 +79,19 @@ namespace White_Spy
         {
             set
             {
-                if (highlightShown != value)
+                if (_highlightShown == value) return;
+                _highlightShown = value;
+                if (_highlightShown)
                 {
-                    highlightShown = value;
-                    if (highlightShown)
-                    {
-                        MethodInvoker mi = new MethodInvoker(Layout);
-                        leftForm.BeginInvoke(mi);
-                        mi = new MethodInvoker(ShowRectangle);
-                        leftForm.BeginInvoke(mi);
-                    }
-                    else
-                    {
-                        MethodInvoker mi = new MethodInvoker(HideRectangle);
-                        leftForm.BeginInvoke(mi);
-                    }
+                    var mi = new MethodInvoker(Layout);
+                    _leftForm.BeginInvoke(mi);
+                    mi = ShowRectangle;
+                    _leftForm.BeginInvoke(mi);
+                }
+                else
+                {
+                    var mi = new MethodInvoker(HideRectangle);
+                    _leftForm.BeginInvoke(mi);
                 }
             }
         }
@@ -106,11 +103,11 @@ namespace White_Spy
         {
             set
             {
-                highlightLocation = value;
-                MethodInvoker mi = new MethodInvoker(Layout);
-                leftForm.BeginInvoke(mi);
+                _highlightLocation = value;
+                var mi = new MethodInvoker(Layout);
+                _leftForm.BeginInvoke(mi);
             }
-            get { return highlightLocation; }
+            get { return _highlightLocation; }
         }
 
         #endregion
@@ -126,17 +123,17 @@ namespace White_Spy
         {
             if (show)
             {
-                NativeMethods.ShowWindow(leftForm.Handle, NativeMethods.SW_SHOWNA);
-                NativeMethods.ShowWindow(topForm.Handle, NativeMethods.SW_SHOWNA);
-                NativeMethods.ShowWindow(rightForm.Handle, NativeMethods.SW_SHOWNA);
-                NativeMethods.ShowWindow(bottomForm.Handle, NativeMethods.SW_SHOWNA);
+                NativeMethods.ShowWindow(_leftForm.Handle, NativeMethods.SW_SHOWNA);
+                NativeMethods.ShowWindow(_topForm.Handle, NativeMethods.SW_SHOWNA);
+                NativeMethods.ShowWindow(_rightForm.Handle, NativeMethods.SW_SHOWNA);
+                NativeMethods.ShowWindow(_bottomForm.Handle, NativeMethods.SW_SHOWNA);
             }
             else
             {
-                leftForm.Hide();
-                topForm.Hide();
-                rightForm.Hide();
-                bottomForm.Hide();
+                _leftForm.Hide();
+                _topForm.Hide();
+                _rightForm.Hide();
+                _bottomForm.Hide();
             }
         }
 
@@ -171,31 +168,31 @@ namespace White_Spy
             // this allows us to also specify HWND_TOPMOST. 
             // Using Form.TopMost = true to do this has the side-effect
             // of activating the rectangle windows, causing them to gain the focus.
-            NativeMethods.SetWindowPos(leftForm.Handle, NativeMethods.HWND_TOPMOST,
-                        highlightLocation.Left - highlightLineWidth, 
-                        highlightLocation.Top, 
-                        highlightLineWidth, highlightLocation.Height, 
+            NativeMethods.SetWindowPos(_leftForm.Handle, NativeMethods.HWND_TOPMOST,
+                        _highlightLocation.Left - _highlightLineWidth, 
+                        _highlightLocation.Top, 
+                        _highlightLineWidth, _highlightLocation.Height, 
                         NativeMethods.SWP_NOACTIVATE);
-            NativeMethods.SetWindowPos(topForm.Handle, NativeMethods.HWND_TOPMOST,
-                        highlightLocation.Left - highlightLineWidth, 
-                        highlightLocation.Top - highlightLineWidth, 
-                        highlightLocation.Width + 2 * highlightLineWidth, 
-                        highlightLineWidth, 
+            NativeMethods.SetWindowPos(_topForm.Handle, NativeMethods.HWND_TOPMOST,
+                        _highlightLocation.Left - _highlightLineWidth, 
+                        _highlightLocation.Top - _highlightLineWidth, 
+                        _highlightLocation.Width + 2 * _highlightLineWidth, 
+                        _highlightLineWidth, 
                         NativeMethods.SWP_NOACTIVATE);
-            NativeMethods.SetWindowPos(rightForm.Handle, NativeMethods.HWND_TOPMOST,
-                        highlightLocation.Left + highlightLocation.Width, 
-                        highlightLocation.Top, highlightLineWidth, 
-                        highlightLocation.Height, 
+            NativeMethods.SetWindowPos(_rightForm.Handle, NativeMethods.HWND_TOPMOST,
+                        _highlightLocation.Left + _highlightLocation.Width, 
+                        _highlightLocation.Top, _highlightLineWidth, 
+                        _highlightLocation.Height, 
                         NativeMethods.SWP_NOACTIVATE);
-            NativeMethods.SetWindowPos(bottomForm.Handle, NativeMethods.HWND_TOPMOST,
-                        highlightLocation.Left - highlightLineWidth, 
-                        highlightLocation.Top + highlightLocation.Height, 
-                        highlightLocation.Width + 2 * highlightLineWidth, 
-                        highlightLineWidth, 
+            NativeMethods.SetWindowPos(_bottomForm.Handle, NativeMethods.HWND_TOPMOST,
+                        _highlightLocation.Left - _highlightLineWidth, 
+                        _highlightLocation.Top + _highlightLocation.Height, 
+                        _highlightLocation.Width + 2 * _highlightLineWidth, 
+                        _highlightLineWidth, 
                         NativeMethods.SWP_NOACTIVATE);
-            NativeMethods.SetWindowPos(infoForm.Handle, NativeMethods.HWND_TOPMOST,
-                        highlightLocation.Left - highlightLineWidth, 
-                        highlightLocation.Top + highlightLocation.Height, 
+            NativeMethods.SetWindowPos(_infoForm.Handle, NativeMethods.HWND_TOPMOST,
+                        _highlightLocation.Left - _highlightLineWidth, 
+                        _highlightLocation.Top + _highlightLocation.Height, 
                         5, 
                         5, 
                         NativeMethods.SWP_NOACTIVATE);
